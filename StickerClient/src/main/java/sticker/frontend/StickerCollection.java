@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  *
@@ -18,13 +19,14 @@ import java.util.HashMap;
 public class StickerCollection extends javax.swing.JFrame {
 
     Map<Integer, Checkbox> stickerChecboxMap;
-    private PrintWriter pw;
-    private String keyword;
+    private final PrintWriter pw;
+    private final String keyword;
 
     /**
      * Creates new form StickerCollection
      * @param title
      * @param pw
+     * @param keyword
      */
     public StickerCollection(String title, PrintWriter pw, String keyword) {
         super(title);
@@ -39,7 +41,7 @@ public class StickerCollection extends javax.swing.JFrame {
     public static final int CHECKBOX_HEIGHT = 25;
     public static final int CHECKBOX_OFFSET = 5;
     
-    public  void appendCheckbox(String name, int offsetX, int offsetY) {
+    public void appendCheckbox(String name, int offsetX, int offsetY) {
         Checkbox cb = new Checkbox(name);
         cb.setBounds(cbPanel.getLocation().x + offsetX, cbPanel.getLocation().y + offsetY, CHECKBOX_WIDTH, CHECKBOX_HEIGHT);
         stickerChecboxMap.put(Integer.parseInt(name), cb);
@@ -88,7 +90,7 @@ public class StickerCollection extends javax.swing.JFrame {
         );
         cbPanelLayout.setVerticalGroup(
             cbPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 248, Short.MAX_VALUE)
+            .addGap(0, 202, Short.MAX_VALUE)
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -99,7 +101,7 @@ public class StickerCollection extends javax.swing.JFrame {
                 .addContainerGap(402, Short.MAX_VALUE)
                 .addComponent(removeBtn)
                 .addGap(15, 15, 15))
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(cbPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
@@ -109,7 +111,7 @@ public class StickerCollection extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(cbPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(58, 58, 58)
                 .addComponent(removeBtn)
                 .addContainerGap())
         );
@@ -117,7 +119,7 @@ public class StickerCollection extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public void removeCheckboxes(ArrayList<Integer> removingStickers) {
+    public void removeCheckboxes(List<Integer> removingStickers) {
         ArrayList<Integer> remainingStickers = new ArrayList(stickerChecboxMap.keySet());
         
         // remove checked stickers from helping list, panel & hash map
@@ -157,7 +159,6 @@ public class StickerCollection extends javax.swing.JFrame {
     }
     
     private void removeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeBtnActionPerformed
-        // TODO add your handling code here:
         ArrayList<Integer> checkedCbs = new ArrayList();
         
         for (int key : stickerChecboxMap.keySet()) {

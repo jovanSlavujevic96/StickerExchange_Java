@@ -11,9 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +35,16 @@ public class ConnectedStickerClient implements Runnable {
     private static final String REMOVED_DUPLICATES_KEYWORD = "RemovedDuplicates:";
     private static final String EXCHANGE_POSSIBILITIES_REQ_KEYWORD = "ExchangePossibilities.";
     private static final String EXCHANGE_POSSIBILITIES_REPLY_KEYWORD = "ExchangePossibilities:";
+    private static final String EXCHANGE_REQ_KEYWORD = "ExchangeReq:";
+    private static final String EXCHANGE_REPLY_KEYWORD = "ExchangeReply:";
+    private static final String EXCHANGE_OFFER_KEYWORD = "ExchangeOffer:";
+    private static final String EXCHANGE_OFFER_REPLY_KEYWORD = "ExchangeOfferReply:";
+    private static final String EXCHANGE_OFFER_ACCEPT_KEYWORD = "ACCEPT";
+    private static final String EXCHANGE_OFFER_REFUSE_KEYWORD = "REFUSE";
     
+    private static final String ERROR_CODE_NOT_FOUND = "404";
+    private static final String ERROR_CODE_BAD_AMOUNT = "500";
+    private static final String ERROR_CODE_BAD_VALUE = "501";
     
     public String getUserName() {
         return this.userName;
@@ -53,6 +60,10 @@ public class ConnectedStickerClient implements Runnable {
     
     public void setSocket(Socket socket) {
         this.socket = socket;
+    }
+    
+    public PrintWriter getPw() {
+        return pw;
     }
     
     public ArrayList<Integer> getDuplicateStickers() {
@@ -104,6 +115,33 @@ public class ConnectedStickerClient implements Runnable {
         
         Collections.sort(duplicateStickers);
         Collections.sort(missingStickers);
+    }
+    
+    private ConnectedStickerClient checkUserWithinList(String username) {
+        for (ConnectedStickerClient client : clients) {
+            if (client.getUserName().equals(username)) {
+                return client;
+            }
+        }
+        return null;
+    }
+    
+    private boolean checkUserStickers(ConnectedStickerClient user, String[] userDuplicates, String[] userMissing) {
+        var duplicatesRef = user.getDuplicateStickers();
+        var missingRef = user.getMissingStickers();
+
+        for (String duplicate : userDuplicates) {
+            if (!duplicatesRef.contains((Integer)Integer.parseInt(duplicate))) {
+                return false;
+            }
+        }
+        
+        for (String missing : userMissing) {
+            if (!missingRef.contains((Integer)Integer.parseInt(missing))) {
+                return false;
+            }
+        }
+        return true;
     }
     
     public String processMessage(String msg) {
@@ -169,9 +207,67 @@ public class ConnectedStickerClient implements Runnable {
                     for (int match : duplicateMatches) {
                         out += Integer.toString(match) + " ";
                     }
-                    out += "\r\n";
+                    out += "____";
                 }
             }
+        }
+        // check and pass exchange request
+        else if (msg.startsWith(EXCHANGE_REQ_KEYWORD)) {
+            String[] users = msg.split("____")[1].split("=");
+            String[] stickerGroups = msg.split("____")[0].split(":")[1].split("\\|");
+            String[] otherUserDuplicates = stickerGroups[0].split(" ");
+            String[] otherUserMissing = stickerGroups[1].split(" ");
+            
+            ConnectedStickerClient otherUser;
+
+            if (otherUserDuplicates.length != otherUserMissing.length) {
+                out = EXCHANGE_REPLY_KEYWORD + ERROR_CODE_BAD_AMOUNT;
+            } else if (checkUserWithinList(users[0]) == null || (otherUser = checkUserWithinList(users[1])) == null) {
+                out = EXCHANGE_REPLY_KEYWORD + ERROR_CODE_NOT_FOUND;
+            } else if (!checkUserStickers(otherUser, otherUserDuplicates, otherUserMissing)) {
+                out = EXCHANGE_REPLY_KEYWORD + ERROR_CODE_BAD_VALUE;
+            } else {
+                // forward offer to other user
+                msg = EXCHANGE_OFFER_KEYWORD;
+                msg += stickerGroups[1] + "|" + stickerGroups[0] + "____";
+                msg += users[1] + "=" + users[0];
+
+                otherUser.getPw().println(msg); 
+            }
+        }
+        // check offer response
+        else if (msg.startsWith(EXCHANGE_OFFER_REPLY_KEYWORD)) {
+            String[] lines = msg.split(":");
+            boolean offerAccepted = lines[1].equals(EXCHANGE_OFFER_ACCEPT_KEYWORD);
+            final String[] users = lines[3].split("=");
+            
+            // find other user
+            ConnectedStickerClient otherUser = checkUserWithinList(users[1]);
+
+            if (offerAccepted) {
+                final String[] stickerGroups = lines[2].split("\\|");
+                final String[] otherDuplicate = stickerGroups[0].split(" ");
+                final String[] otherMissing = stickerGroups[1].split(" ");
+                
+                for (String number : otherDuplicate) {
+                    Integer tmp = Integer.parseInt(number);
+                    missingStickers.remove(tmp);
+                    otherUser.getDuplicateStickers().remove(tmp);
+                }
+
+                for (String number : otherMissing) {
+                    Integer tmp = Integer.parseInt(number);
+                    duplicateStickers.remove(tmp);
+                    otherUser.getMissingStickers().remove(tmp);
+                }
+
+                msg = EXCHANGE_REPLY_KEYWORD + EXCHANGE_OFFER_ACCEPT_KEYWORD + ":";
+                msg += stickerGroups[0] + "|" + stickerGroups[1];
+            } else {
+                msg = EXCHANGE_REPLY_KEYWORD + EXCHANGE_OFFER_REFUSE_KEYWORD;
+            }
+            
+            otherUser.getPw().println(msg); 
         }
 
         return out;

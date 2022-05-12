@@ -10,8 +10,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 
 /**
  *
@@ -29,12 +34,46 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
     private PrintWriter pw;
     private ReceiveMessageFromServer rmfs;
     private String userName;
+    final private Map<String, ExchangeInfo> exchangeUsersMap;
     
     private StickerCollection missingStickersUI;
     private StickerCollection duplicateStickersUI;
     
+    private class ExchangeInfo {
+        public ArrayList<Integer> otherDuplicates;
+        public ArrayList<Integer> otherMissing;
+        
+        public ExchangeInfo(String[] otherDuplicates, String[] otherMissing) {
+            this.otherDuplicates = new ArrayList();
+            this.otherMissing = new ArrayList();
+            
+            for (String duplicate : otherDuplicates) {
+                this.otherDuplicates.add(Integer.parseInt(duplicate));
+            }
+            
+            for (String missing : otherMissing) {
+                this.otherMissing.add(Integer.parseInt(missing));
+            }
+            
+            Collections.sort(this.otherDuplicates);
+            Collections.sort(this.otherMissing);
+        }
+    }
+    
+    public ArrayList<Integer> getOtherDuplicates(String otherUsername) {
+        return exchangeUsersMap.get(otherUsername).otherDuplicates;
+    }
+    
+    public ArrayList<Integer> getOtherMissing(String otherUsername) {
+        return exchangeUsersMap.get(otherUsername).otherMissing;
+    }
+    
     public BufferedReader getBr() {
         return br;
+    }
+    
+    public PrintWriter getPw() {
+        return pw;
     }
     
     public StickerCollection getMissingStickersUI() {
@@ -53,8 +92,10 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
         this.userName = username;
     }
     
-    public void appendUser(String name) {
+    public void appendUser(String name, String[] otherDuplicates, String[] otherMissing) {
+        exchangeUsersMap.put(name, new ExchangeInfo(otherDuplicates, otherMissing));
         comboExchange.addItem(name);
+        btnCheckStickers.setEnabled(true);
     }
     
     /**
@@ -62,6 +103,7 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
      */
     public StickerClientMainWindow() {
         initComponents();
+        exchangeUsersMap = new HashMap();
     }
 
     /**
@@ -73,11 +115,17 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        btnMissing1 = new javax.swing.JButton();
         btnConnect = new javax.swing.JButton();
         btnSendUserName = new javax.swing.JButton();
         tfMyName = new javax.swing.JTextField();
         btnExchangePossibilities = new javax.swing.JButton();
         comboExchange = new javax.swing.JComboBox<>();
+        btnDuplicates = new javax.swing.JButton();
+        btnMissing = new javax.swing.JButton();
+        btnCheckStickers = new javax.swing.JButton();
+
+        btnMissing1.setText("Slicice koje fale");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -109,6 +157,30 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
         comboExchange.setEnabled(false);
         comboExchange.setName(""); // NOI18N
 
+        btnDuplicates.setText("Slicice duplikati");
+        btnDuplicates.setEnabled(false);
+        btnDuplicates.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDuplicatesActionPerformed(evt);
+            }
+        });
+
+        btnMissing.setText("Slicice koje fale");
+        btnMissing.setEnabled(false);
+        btnMissing.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMissingActionPerformed(evt);
+            }
+        });
+
+        btnCheckStickers.setText("Pogledaj slicice");
+        btnCheckStickers.setEnabled(false);
+        btnCheckStickers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCheckStickersActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -116,19 +188,28 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnConnect)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(btnSendUserName)
                             .addComponent(btnExchangePossibilities))
+                        .addGap(18, 18, 18)
+                        .addComponent(tfMyName, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(253, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(tfMyName, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(btnConnect)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnMissing)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnDuplicates))
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(11, 11, 11)
-                                .addComponent(comboExchange, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap(211, Short.MAX_VALUE))
+                                .addGap(129, 129, 129)
+                                .addComponent(comboExchange, javax.swing.GroupLayout.PREFERRED_SIZE, 192, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnCheckStickers, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addGap(12, 12, 12))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -136,13 +217,17 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
                 .addGap(21, 21, 21)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnExchangePossibilities)
-                    .addComponent(comboExchange, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 258, Short.MAX_VALUE)
+                    .addComponent(comboExchange, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnCheckStickers))
+                .addGap(196, 258, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSendUserName)
                     .addComponent(tfMyName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnConnect)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnConnect)
+                    .addComponent(btnMissing)
+                    .addComponent(btnDuplicates))
                 .addGap(12, 12, 12))
         );
 
@@ -157,6 +242,9 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
             
             this.missingStickersUI = new StickerCollection("Slicice koje mi nedostaju", this.pw, REMOVED_MISSING_KEYWORD);
             this.duplicateStickersUI = new StickerCollection("Slicice koje imam viska", this.pw, REMOVED_DUPLICATES_KEYWORD);
+            
+            this.missingStickersUI.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+            this.duplicateStickersUI.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 
             this.rmfs = new ReceiveMessageFromServer(this);
             Thread thr = new Thread(rmfs);
@@ -183,9 +271,8 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
             missingStickersUI.setTitle(missingStickersUI.getTitle() + " (" + userName + ")");
             duplicateStickersUI.setTitle(duplicateStickersUI.getTitle() + " (" + userName + ")");
             
-            missingStickersUI.setVisible(true);
-            duplicateStickersUI.setVisible(true);
-            
+            btnMissing.setEnabled(true);
+            btnDuplicates.setEnabled(true);
             comboExchange.setEnabled(true);
             btnExchangePossibilities.setEnabled(true);
             
@@ -194,8 +281,33 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_btnSendUserNameActionPerformed
 
     private void btnExchangePossibilitiesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExchangePossibilitiesActionPerformed
+        btnCheckStickers.setEnabled(false);
+        comboExchange.removeAllItems();
+        exchangeUsersMap.clear();
         pw.println(EXCHANGE_POSSIBILITIES_REQ_KEYWORD);
     }//GEN-LAST:event_btnExchangePossibilitiesActionPerformed
+
+    private void btnMissingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMissingActionPerformed
+        missingStickersUI.setVisible(true);
+    }//GEN-LAST:event_btnMissingActionPerformed
+
+    private void btnDuplicatesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDuplicatesActionPerformed
+        duplicateStickersUI.setVisible(true);
+    }//GEN-LAST:event_btnDuplicatesActionPerformed
+
+    private void btnCheckStickersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCheckStickersActionPerformed
+        String otherUserName;
+        try {
+            otherUserName = comboExchange.getSelectedItem().toString();
+        } catch (java.lang.NullPointerException ex) {
+            return;
+        }
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(() -> {
+            new ExchangeMenu(this, otherUserName).setVisible(true);
+        });
+    }//GEN-LAST:event_btnCheckStickersActionPerformed
         
     /**
      * @param args the command line arguments
@@ -231,8 +343,12 @@ public class StickerClientMainWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCheckStickers;
     private javax.swing.JButton btnConnect;
+    private javax.swing.JButton btnDuplicates;
     private javax.swing.JButton btnExchangePossibilities;
+    private javax.swing.JButton btnMissing;
+    private javax.swing.JButton btnMissing1;
     private javax.swing.JButton btnSendUserName;
     private javax.swing.JComboBox<String> comboExchange;
     private javax.swing.JTextField tfMyName;
