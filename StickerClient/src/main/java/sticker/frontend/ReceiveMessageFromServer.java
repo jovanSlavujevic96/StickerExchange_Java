@@ -119,6 +119,7 @@ public class ReceiveMessageFromServer implements Runnable {
                 default:
                     break;
             }
+            
         }
         // handle exchange offer
         else if (msg.startsWith(EXCHANGE_OFFER_KEYWORD)) {
@@ -160,6 +161,7 @@ public class ReceiveMessageFromServer implements Runnable {
             boolean offerAccepted = lines[1].equals(EXCHANGE_OFFER_ACCEPT_KEYWORD);
             if (offerAccepted) {
                 final String[] stickerGroups = lines[2].split("\\|");
+                final String otherUsername = lines[3].split("=")[0];
 
                 final List<String> ownDuplicateStickers = Arrays.asList(stickerGroups[0].split(" "));
                 final List<String> ownMissingStickers = Arrays.asList(stickerGroups[1].split(" "));
@@ -168,7 +170,9 @@ public class ReceiveMessageFromServer implements Runnable {
                 final List<Integer> deleteOwnMissing = convertStringListToIntList(ownMissingStickers, Integer::parseInt);
                 
                 duplicateStickersUI.removeCheckboxes(deleteOwnDuplicate);
-                missingStickersUI.removeCheckboxes(deleteOwnMissing);                
+                missingStickersUI.removeCheckboxes(deleteOwnMissing);
+
+                JOptionPane.showMessageDialog(this.parent, "Razmena sa " + otherUsername + " je uspesna!");
             }
         }
     }

@@ -261,10 +261,10 @@ public class ConnectedStickerClient implements Runnable {
                     otherUser.getMissingStickers().remove(tmp);
                 }
 
-                msg = EXCHANGE_REPLY_KEYWORD + EXCHANGE_OFFER_ACCEPT_KEYWORD + ":";
-                msg += stickerGroups[0] + "|" + stickerGroups[1];
+                msg = EXCHANGE_OFFER_REPLY_KEYWORD + EXCHANGE_OFFER_ACCEPT_KEYWORD + ":";
+                msg += stickerGroups[0] + "|" + stickerGroups[1] + ":" + lines[3];
             } else {
-                msg = EXCHANGE_REPLY_KEYWORD + EXCHANGE_OFFER_REFUSE_KEYWORD;
+                msg = EXCHANGE_OFFER_REPLY_KEYWORD + EXCHANGE_OFFER_REFUSE_KEYWORD;
             }
             
             otherUser.getPw().println(msg); 

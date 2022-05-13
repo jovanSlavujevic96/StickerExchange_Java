@@ -10,4 +10,5 @@ sticker\frontend\ExchangeMenu$1.class
 sticker\frontend\StickerClientMainWindow.class
 sticker\frontend\StickerCollection$1.class
 sticker\frontend\StickerCollection.class
+.netbeans_automatic_build
 sticker\frontend\ReceiveMessageFromServer.class
